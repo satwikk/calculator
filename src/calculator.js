@@ -7,6 +7,7 @@ const MAX_DIGITS = 12; // matches the 12-digit display precision in format()
 
 class Calculator {
   constructor() {
+    this.history = []; // HistoryEntry { expression, result, value }, newest first; _clear() never touches it
     this._clear();
   }
 
@@ -30,10 +31,16 @@ class Calculator {
 
   getDisplay() {
     if (this.error) return { expression: this.error, preview: '' };
-    const expression = this.tokens
-      .map((t, i) => (i % 2 === 0 ? Calculator.group(t) : OP_SYMBOL[t]))
-      .join('');
-    return { expression, preview: this._preview() };
+    return { expression: Calculator.displayExpression(this.tokens), preview: this._preview() };
+  }
+
+  // Successful calculations, newest first. Returns a copy.
+  getHistory() {
+    return this.history.slice();
+  }
+
+  clearHistory() {
+    this.history = [];
   }
 
   // --- private helpers -------------------------------------------------
@@ -63,21 +70,31 @@ class Calculator {
     this.tokens = [];
     this.justEvaluated = false;
     this.error = null;
-    this.carry = null; // { text, value }: full-precision value behind a displayed result
+    // token index → { text, value }: full-precision value behind a displayed number
+    // (a result after =, or a loaded history entry). Dropped as soon as that token is edited.
+    this.exact = new Map();
   }
 
-  // Tokens for evaluation, with an untouched previous result restored to full precision.
+  // Tokens for evaluation, with untouched exact numbers restored to full precision.
   _exactTokens() {
     const t = this.tokens.slice();
-    if (this.carry && t[0] === this.carry.text) t[0] = String(this.carry.value);
+    for (const [i, { text, value }] of this.exact) {
+      if (t[i] === text) t[i] = String(value);
+    }
     return t;
+  }
+
+  // Set the last token, forgetting any hidden precision it carried.
+  _setLast(text) {
+    this.exact.delete(this.tokens.length - 1);
+    this.tokens[this.tokens.length - 1] = text;
   }
 
   _startFreshIfEvaluated() {
     if (this.justEvaluated) {
       this.tokens = [];
       this.justEvaluated = false;
-      this.carry = null;
+      this.exact = new Map();
     }
   }
 
@@ -90,11 +107,11 @@ class Calculator {
     const last = this._last();
     if (last.includes('e')) return; // exponent-form numbers can't be typed into
     if (last === '0' || last === '-0') {
-      this.tokens[this.tokens.length - 1] = last.slice(0, -1) + d;
+      this._setLast(last.slice(0, -1) + d);
       return;
     }
     if (last.replace(/[-.]/g, '').length >= MAX_DIGITS) return;
-    this.tokens[this.tokens.length - 1] = last + d;
+    this._setLast(last + d);
   }
 
   _dot() {
@@ -105,7 +122,7 @@ class Calculator {
     }
     const last = this._last();
     if (last.includes('.') || last.includes('e')) return;
-    this.tokens[this.tokens.length - 1] = last === '-' ? '-0.' : last + '.';
+    this._setLast(last === '-' ? '-0.' : last + '.');
   }
 
   _operator(op) {
@@ -121,11 +138,12 @@ class Calculator {
       const last = this._last();
       if (last === '-') {
         if (t.length === 1) return; // lone minus at the start: ignore
+        this.exact.delete(t.length - 1);
         t.pop(); // lone minus after × or ÷: drop it, then replace that operator
         t[t.length - 1] = op;
         return;
       }
-      if (last.endsWith('.')) t[t.length - 1] = last.slice(0, -1);
+      if (last.endsWith('.')) this._setLast(last.slice(0, -1));
       t.push(op);
       return;
     }
@@ -150,21 +168,67 @@ class Calculator {
       this.error = Calculator.ERROR_TOO_LARGE;
       return;
     }
-    this.tokens = [Calculator.format(value)];
-    this.carry = { text: this.tokens[0], value };
+    const recorded = this.tokens.slice();
+    const lastNum = recorded[recorded.length - 1];
+    if (lastNum.endsWith('.')) recorded[recorded.length - 1] = lastNum.slice(0, -1);
+    const result = Calculator.format(value);
+    this.history.unshift({
+      expression: Calculator.displayExpression(recorded),
+      result: Calculator.group(result),
+      value,
+    });
+    this._showResult(result, value);
+  }
+
+  // State identical to just after a successful =: one exact number, evaluated.
+  _showResult(text, value) {
+    this.tokens = [text];
+    this.exact = new Map([[0, { text, value }]]);
     this.justEvaluated = true;
+  }
+
+  // Load history entry `index` (0 = newest). Not an integer in range: does nothing.
+  useEntry(index) {
+    if (!Number.isInteger(index) || index < 0 || index >= this.history.length) return;
+    const { value } = this.history[index];
+    if (this.error) this._clear();
+    const t = this.tokens;
+
+    if (t.length > 0 && !this._endsInNumber()) {
+      // Waiting for a number after an operator: insert the result as that number.
+      const text = Calculator.format(value);
+      t.push(text);
+      this.exact.set(t.length - 1, { text, value });
+      this.justEvaluated = false;
+      return;
+    }
+    if (t.length > 1 && this._last() === '-') {
+      // Lone minus after × or ÷: the loaded result becomes the negative number.
+      const text = Calculator.format(-value);
+      this._setLast(text);
+      this.exact.set(t.length - 1, { text, value: -value });
+      this.justEvaluated = false;
+      return;
+    }
+    // Empty, a result showing, or mid-number: replace, exactly like a fresh = result.
+    this._showResult(Calculator.format(value), value);
   }
 
   _backspace() {
     this.justEvaluated = false;
     const t = this.tokens;
     if (t.length === 0) return;
-    if (t.length === 1) this.carry = null; // the result itself is being edited
     const last = this._last();
     // Exponent-form numbers are cleared whole, never trimmed.
     const trimmed = this._endsInNumber() && last.includes('e') ? '' : last.slice(0, -1);
+    this.exact.delete(t.length - 1); // the token being edited loses its hidden precision
     if (trimmed === '') t.pop();
     else t[t.length - 1] = trimmed;
+  }
+
+  // Display form of a token list: grouped numbers joined by operator symbols, no spaces.
+  static displayExpression(tokens) {
+    return tokens.map((t, i) => (i % 2 === 0 ? Calculator.group(t) : OP_SYMBOL[t])).join('');
   }
 
   // Evaluate a complete token list (number, op, number, ...) with BODMAS.

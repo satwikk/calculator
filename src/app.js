@@ -9,6 +9,11 @@
   const expressionEl = document.getElementById('expression');
   const previewEl = document.getElementById('preview');
   const keysEl = document.querySelector('.keys');
+  const toggleBtn = document.getElementById('history-toggle');
+  const historyEl = document.getElementById('history');
+  const historyListEl = document.getElementById('history-list');
+  const historyEmptyEl = document.getElementById('history-empty');
+  const clearBtn = document.getElementById('history-clear');
 
   // event.key → calculator key name. Numpad keys produce the same event.key values.
   const KEYMAP = {
@@ -36,6 +41,37 @@
     expressionEl.classList.toggle('error', isError);
     expressionEl.classList.toggle('shrink', !isError && expression.length > SHRINK_AFTER);
     expressionEl.scrollLeft = expressionEl.scrollWidth;
+    renderHistory();
+  }
+
+  // Rebuild the history list. textContent only: entries are data, never markup.
+  function renderHistory() {
+    const entries = calc.getHistory();
+    const items = entries.map(function (entry, i) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'history-entry';
+      btn.tabIndex = -1; // mouse only: never reachable or activatable from the keyboard
+      btn.dataset.index = String(i);
+      const expr = document.createElement('span');
+      expr.className = 'history-expr';
+      expr.textContent = entry.expression;
+      const result = document.createElement('span');
+      result.className = 'history-result';
+      result.textContent = '= ' + entry.result;
+      btn.append(expr, result);
+      const li = document.createElement('li');
+      li.append(btn);
+      return li;
+    });
+    historyListEl.replaceChildren.apply(historyListEl, items);
+    historyEmptyEl.hidden = entries.length > 0;
+  }
+
+  function toggleHistory() {
+    const open = historyEl.hidden;
+    historyEl.hidden = !open;
+    toggleBtn.setAttribute('aria-expanded', String(open));
   }
 
   // Restart the highlight on every press, never stacking timers.
@@ -65,8 +101,39 @@
     btn.blur();
   });
 
+  toggleBtn.addEventListener('click', function () {
+    toggleHistory();
+    flash(toggleBtn);
+    toggleBtn.blur();
+  });
+
+  // Mouse only: entries have tabindex -1 and are blurred, so Space/Enter never activate one.
+  historyListEl.addEventListener('click', function (event) {
+    const btn = event.target.closest('.history-entry');
+    if (!btn || !historyListEl.contains(btn)) return;
+    const i = Number(btn.dataset.index);
+    calc.useEntry(i);
+    render(); // rebuilds the list, so flash the new button for this entry, not the old one
+    const fresh = historyListEl.querySelector('.history-entry[data-index="' + i + '"]');
+    flash(fresh);
+    btn.blur();
+  });
+
+  clearBtn.addEventListener('click', function () {
+    calc.clearHistory();
+    render();
+    clearBtn.blur();
+  });
+
   document.addEventListener('keydown', function (event) {
     if (event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.key === 'h' || event.key === 'H') {
+      event.preventDefault();
+      if (event.repeat) return; // holding H toggles once, not ~30 times a second
+      toggleHistory();
+      flash(toggleBtn);
+      return;
+    }
     const name = KEYMAP[event.key];
     if (name === undefined) return;
     event.preventDefault();

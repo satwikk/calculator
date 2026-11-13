@@ -3,6 +3,10 @@
 ## Goal
 Build a calculator app as part of an hands-on exersice for a human to undertand how to build apps with Claude
 
+## Must have (v2)
+- Add Calculation History
+- On the side of the existing calculator layout add a toggle button to accept input from user if they want to see calculation history
+
 ## Must have (v1)
 - Add, subtract, multiply, divide
 - Decimal numbers

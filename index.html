@@ -7,8 +7,17 @@
   <link rel="stylesheet" href="src/styles.css">
 </head>
 <body>
+  <div class="app">
   <main class="calc">
     <section class="display" aria-live="polite">
+      <button id="history-toggle" class="history-toggle" type="button"
+              aria-label="History" aria-expanded="false" aria-controls="history">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
       <div id="expression" class="expression"></div>
       <div id="preview" class="preview"></div>
     </section>
@@ -38,6 +47,14 @@
       <button type="button" class="key key-eq" data-key="=" aria-label="Equals">=</button>
     </div>
   </main>
+
+  <aside id="history" class="history" aria-label="History" hidden>
+    <h2 class="history-title">History</h2>
+    <ol id="history-list" class="history-list"></ol>
+    <p id="history-empty" class="history-empty">No history yet</p>
+    <button id="history-clear" class="history-clear" type="button" tabindex="-1">Clear</button>
+  </aside>
+  </div>
 
   <script src="src/calculator.js"></script>
   <script src="src/app.js"></script>
