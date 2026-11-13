@@ -7,6 +7,7 @@ const MAX_DIGITS = 12; // matches the 12-digit display precision in format()
 
 class Calculator {
   constructor() {
+    this.history = []; // HistoryEntry { expression, result, value }, newest first; _clear() never touches it
     this._clear();
   }
 
@@ -30,10 +31,16 @@ class Calculator {
 
   getDisplay() {
     if (this.error) return { expression: this.error, preview: '' };
-    const expression = this.tokens
-      .map((t, i) => (i % 2 === 0 ? Calculator.group(t) : OP_SYMBOL[t]))
-      .join('');
-    return { expression, preview: this._preview() };
+    return { expression: Calculator.displayExpression(this.tokens), preview: this._preview() };
+  }
+
+  // Successful calculations, newest first. Returns a copy.
+  getHistory() {
+    return this.history.slice();
+  }
+
+  clearHistory() {
+    this.history = [];
   }
 
   // --- private helpers -------------------------------------------------
@@ -150,7 +157,16 @@ class Calculator {
       this.error = Calculator.ERROR_TOO_LARGE;
       return;
     }
-    this.tokens = [Calculator.format(value)];
+    const recorded = this.tokens.slice();
+    const lastNum = recorded[recorded.length - 1];
+    if (lastNum.endsWith('.')) recorded[recorded.length - 1] = lastNum.slice(0, -1);
+    const result = Calculator.format(value);
+    this.history.unshift({
+      expression: Calculator.displayExpression(recorded),
+      result: Calculator.group(result),
+      value,
+    });
+    this.tokens = [result];
     this.carry = { text: this.tokens[0], value };
     this.justEvaluated = true;
   }
@@ -165,6 +181,11 @@ class Calculator {
     const trimmed = this._endsInNumber() && last.includes('e') ? '' : last.slice(0, -1);
     if (trimmed === '') t.pop();
     else t[t.length - 1] = trimmed;
+  }
+
+  // Display form of a token list: grouped numbers joined by operator symbols, no spaces.
+  static displayExpression(tokens) {
+    return tokens.map((t, i) => (i % 2 === 0 ? Calculator.group(t) : OP_SYMBOL[t])).join('');
   }
 
   // Evaluate a complete token list (number, op, number, ...) with BODMAS.
