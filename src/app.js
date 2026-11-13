@@ -31,7 +31,10 @@
     const { expression, preview } = calc.getDisplay();
     expressionEl.textContent = expression;
     previewEl.textContent = preview;
-    expressionEl.classList.toggle('shrink', expression.length > SHRINK_AFTER);
+    // Error messages get their own smaller, wrapping style so the whole message is readable.
+    const isError = expression.startsWith('Error');
+    expressionEl.classList.toggle('error', isError);
+    expressionEl.classList.toggle('shrink', !isError && expression.length > SHRINK_AFTER);
     expressionEl.scrollLeft = expressionEl.scrollWidth;
   }
 

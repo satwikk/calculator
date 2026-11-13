@@ -86,6 +86,14 @@ body {
   font-size: 40px;
 }
 
+/* Error messages must be fully readable: smaller and allowed to wrap. */
+.expression.error {
+  font-size: 28px;
+  line-height: 36px;
+  white-space: normal;
+  overflow-x: hidden;
+}
+
 .preview {
   min-height: 36px;
   font-size: 30px;
