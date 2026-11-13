@@ -92,3 +92,6 @@ CLAUDE.md             instructions for Claude Code working in this repo
   something done.
 - Do feature work on a branch and keep commits small, with clear messages. Don't commit directly
   to `main`.
+
+---
+## [Exercise details](docs/calculator-claude-code-exercise.md)
