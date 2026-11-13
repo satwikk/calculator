@@ -21,6 +21,7 @@ no build step, no internet connection.
 | `Enter`                | Equals    |
 | `Backspace`            | Delete last digit |
 | `Esc`                  | Clear     |
+| `H`                    | Show or hide history |
 
 ## How it behaves
 
@@ -31,7 +32,19 @@ no build step, no internet connection.
 - **Floating point:** `0.1 + 0.2` shows `0.3`. Results are rounded for display only; the
   calculation itself is not changed.
 
-Not included in v1: scientific functions, history, memory and themes.
+## Calculation history
+
+- Click the faint clock in the top-left corner of the display, or press **H**, to show or hide
+  a history panel beside the calculator. On a narrow window the panel sits below it instead.
+- Only successful calculations are listed, newest first. Errors and repeated `=` presses are
+  not recorded.
+- Click an entry to load its result. After an operator (e.g. `5 +`) it becomes the next number;
+  otherwise it replaces what is showing. It loads at full precision, so `1 ÷ 3` then `× 3`
+  gives exactly `1`. Loading entries is mouse only.
+- **Clear** at the bottom of the panel empties the history. `C` clears only the calculator.
+- History lasts for the session only: it is gone when you reload the page.
+
+Not included: scientific functions, memory and themes.
 
 ## Getting started
 

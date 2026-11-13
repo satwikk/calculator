@@ -107,6 +107,18 @@
     toggleBtn.blur();
   });
 
+  // Mouse only: entries have tabindex -1 and are blurred, so Space/Enter never activate one.
+  historyListEl.addEventListener('click', function (event) {
+    const btn = event.target.closest('.history-entry');
+    if (!btn || !historyListEl.contains(btn)) return;
+    const i = Number(btn.dataset.index);
+    calc.useEntry(i);
+    render(); // rebuilds the list, so flash the new button for this entry, not the old one
+    const fresh = historyListEl.querySelector('.history-entry[data-index="' + i + '"]');
+    flash(fresh);
+    btn.blur();
+  });
+
   clearBtn.addEventListener('click', function () {
     calc.clearHistory();
     render();
