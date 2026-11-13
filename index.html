@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculator</title>
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+  <main class="calc">
+    <section class="display" aria-live="polite">
+      <div id="expression" class="expression"></div>
+      <div id="preview" class="preview"></div>
+    </section>
+
+    <div class="keys">
+      <button type="button" class="key key-clear span-2" data-key="C">C</button>
+      <button type="button" class="key key-op" data-key="Backspace" aria-label="Backspace">⌫</button>
+      <button type="button" class="key key-op" data-key="/" aria-label="Divide">÷</button>
+
+      <button type="button" class="key key-num" data-key="7">7</button>
+      <button type="button" class="key key-num" data-key="8">8</button>
+      <button type="button" class="key key-num" data-key="9">9</button>
+      <button type="button" class="key key-op" data-key="*" aria-label="Multiply">×</button>
+
+      <button type="button" class="key key-num" data-key="4">4</button>
+      <button type="button" class="key key-num" data-key="5">5</button>
+      <button type="button" class="key key-num" data-key="6">6</button>
+      <button type="button" class="key key-op" data-key="-" aria-label="Minus">−</button>
+
+      <button type="button" class="key key-num" data-key="1">1</button>
+      <button type="button" class="key key-num" data-key="2">2</button>
+      <button type="button" class="key key-num" data-key="3">3</button>
+      <button type="button" class="key key-op" data-key="+" aria-label="Plus">+</button>
+
+      <button type="button" class="key key-num span-2" data-key="0">0</button>
+      <button type="button" class="key key-num" data-key="." aria-label="Decimal point">.</button>
+      <button type="button" class="key key-eq" data-key="=" aria-label="Equals">=</button>
+    </div>
+  </main>
+
+  <script src="src/calculator.js"></script>
+  <script src="src/app.js"></script>
+</body>
+</html>

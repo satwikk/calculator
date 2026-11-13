@@ -1,0 +1,145 @@
+/* Android Calculator v9.3 look, using the Material You baseline (light) palette. */
+:root {
+  --page-bg: #e7e0ec;
+  --surface: #fef7ff;
+  --on-surface: #1d1b20;
+  --on-surface-variant: #49454f;
+
+  --num-bg: #ece6f0;            /* surface container high */
+  --num-bg-pressed: #d6d0da;
+  --num-fg: #1d1b20;
+
+  --op-bg: #e8def8;             /* secondary container */
+  --op-bg-pressed: #ccc2dc;
+  --op-fg: #1d192b;
+
+  --clear-bg: #ffd8e4;          /* tertiary container */
+  --clear-bg-pressed: #efb8c8;
+  --clear-fg: #31111d;
+
+  --eq-bg: #6750a4;             /* primary */
+  --eq-bg-pressed: #4f378b;
+  --eq-fg: #ffffff;
+
+  --key-radius: 999px;
+  --key-radius-pressed: 24px;
+  --gap: 10px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--page-bg);
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+  color: var(--on-surface);
+}
+
+.calc {
+  width: 380px;
+  max-width: 100vw;
+  padding: 24px 16px 20px;
+  background: var(--surface);
+  border-radius: 32px;
+  box-shadow: 0 8px 28px rgba(29, 27, 32, 0.18);
+}
+
+/* ---- Display ---- */
+
+.display {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+  min-height: 170px;
+  padding: 8px 8px 20px;
+}
+
+.expression {
+  min-height: 72px;
+  font-size: 60px;
+  font-weight: 300;
+  line-height: 72px;
+  text-align: right;
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  transition: font-size 100ms ease;
+}
+
+.expression::-webkit-scrollbar {
+  display: none;
+}
+
+.expression.shrink {
+  font-size: 40px;
+}
+
+.preview {
+  min-height: 36px;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 36px;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--on-surface-variant);
+  opacity: 0.75;
+}
+
+/* ---- Keypad ---- */
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--gap);
+}
+
+.key {
+  height: 72px;
+  border: 0;
+  border-radius: var(--key-radius);
+  font-family: inherit;
+  font-size: 30px;
+  font-weight: 400;
+  cursor: pointer;
+  user-select: none;
+  transition: border-radius 100ms ease, background-color 100ms ease, transform 100ms ease;
+}
+
+.key:focus-visible {
+  outline: 3px solid var(--eq-bg);
+  outline-offset: 2px;
+}
+
+.span-2 {
+  grid-column: span 2;
+}
+
+.key-num   { background: var(--num-bg);   color: var(--num-fg); }
+.key-op    { background: var(--op-bg);    color: var(--op-fg); }
+.key-clear { background: var(--clear-bg); color: var(--clear-fg); }
+.key-eq    { background: var(--eq-bg);    color: var(--eq-fg); }
+
+/* Shared highlight for mouse and keyboard presses (toggled by app.js). */
+.key.pressed {
+  border-radius: var(--key-radius-pressed);
+  transform: scale(0.95);
+}
+
+.key-num.pressed   { background: var(--num-bg-pressed); }
+.key-op.pressed    { background: var(--op-bg-pressed); }
+.key-clear.pressed { background: var(--clear-bg-pressed); }
+.key-eq.pressed    { background: var(--eq-bg-pressed); }
