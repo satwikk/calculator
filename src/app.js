@@ -129,6 +129,7 @@
     if (event.ctrlKey || event.metaKey || event.altKey) return;
     if (event.key === 'h' || event.key === 'H') {
       event.preventDefault();
+      if (event.repeat) return; // holding H toggles once, not ~30 times a second
       toggleHistory();
       flash(toggleBtn);
       return;
