@@ -57,6 +57,7 @@ body {
 /* ---- Display ---- */
 
 .display {
+  position: relative; /* anchors the history toggle */
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -151,3 +152,174 @@ body {
 .key-op.pressed    { background: var(--op-bg-pressed); }
 .key-clear.pressed { background: var(--clear-bg-pressed); }
 .key-eq.pressed    { background: var(--eq-bg-pressed); }
+
+/* ---- History (v2) ---- */
+
+/* Sizes to the calculator, so the calculator stays centred exactly as in v1. */
+.app {
+  position: relative;
+}
+
+/* Subtle clock toggle in the display's top-left corner; never shifts the expression. */
+.history-toggle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--on-surface-variant);
+  opacity: 0.45;
+  cursor: pointer;
+  transition: opacity 120ms ease, color 120ms ease, background-color 120ms ease;
+}
+
+.history-toggle:hover,
+.history-toggle[aria-expanded="true"] {
+  opacity: 1;
+}
+
+.history-toggle[aria-expanded="true"] {
+  color: var(--eq-bg);
+}
+
+.history-toggle.pressed {
+  background: var(--num-bg-pressed);
+}
+
+.history-toggle:focus-visible {
+  outline: 3px solid var(--eq-bg);
+  outline-offset: 2px;
+}
+
+/* Side panel: to the right of the calculator, same height, out of the layout flow. */
+.history {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  height: 100%;
+  width: 280px;
+  margin-left: 16px;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 12px 16px;
+  background: var(--surface);
+  border-radius: 32px;
+  box-shadow: 0 8px 28px rgba(29, 27, 32, 0.18);
+}
+
+/* The author display rule above must not override the hidden attribute. */
+.history[hidden] {
+  display: none;
+}
+
+.history-title {
+  margin: 0 8px 8px;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--on-surface-variant);
+}
+
+.history-list {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.history-entry {
+  display: block;
+  width: 100%;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 16px;
+  background: transparent;
+  font-family: inherit;
+  text-align: right;
+  cursor: pointer;
+  transition: background-color 100ms ease;
+}
+
+.history-entry:hover {
+  background: var(--num-bg);
+}
+
+.history-entry.pressed {
+  background: var(--num-bg-pressed);
+}
+
+.history-expr,
+.history-result {
+  display: block;
+  overflow-wrap: anywhere;
+}
+
+.history-expr {
+  font-size: 16px;
+  color: var(--on-surface-variant);
+}
+
+.history-result {
+  font-size: 22px;
+  color: var(--on-surface);
+}
+
+.history-empty {
+  flex: 1;
+  margin: 0;
+  padding: 16px 8px;
+  text-align: center;
+  color: var(--on-surface-variant);
+}
+
+.history-empty[hidden] {
+  display: none;
+}
+
+.history-clear {
+  align-self: flex-end;
+  margin-top: 8px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--op-bg);
+  color: var(--op-fg);
+  font-family: inherit;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.history-clear:hover {
+  background: var(--op-bg-pressed);
+}
+
+/* Narrow window: not room for both columns, so the panel stacks below the calculator. */
+@media (max-width: 979px) {
+  body {
+    height: auto;
+    min-height: 100%;
+  }
+
+  .app {
+    display: flex;
+    flex-direction: column;
+    width: 380px;
+    max-width: 100vw;
+  }
+
+  .history {
+    position: static;
+    width: auto;
+    height: auto;
+    max-height: 360px;
+    margin: 16px 0 0;
+  }
+}
