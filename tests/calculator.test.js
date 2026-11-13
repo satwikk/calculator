@@ -6,7 +6,7 @@ const KEY = { B: 'Backspace' };              // other chars map to themselves
 function run(seq, c = new Calculator()) { for (const ch of seq) c.press(KEY[ch] || ch); return c.getDisplay(); }
 const expr = s => run(s).expression, prev = s => run(s).preview;
 
-const BIG = '999999999999999';
+const BIG = '999999999999'; // 12 digits, the input limit
 
 test('BODMAS', () => {
   assert.strictEqual(expr('10-2+3='), '11');
@@ -97,16 +97,16 @@ test('error then any key', () => {
   assert.strictEqual(expr('8/0=B'), '');
 });
 test('digit limit', () => {
-  assert.strictEqual(expr('1234567890123456'), '123,456,789,012,345');
+  assert.strictEqual(expr('1234567890123'), '123,456,789,012');
 });
 test('exponent results', () => {
-  const seq = '1000000000000*1000000000=';
+  const seq = '100000000000*10000000000='; // 1e11 × 1e10 = 1e21
   assert.strictEqual(expr(seq), '1e21');
   assert.strictEqual(expr(seq + 'B'), '');
   assert.strictEqual(expr(seq + '+2='), '1e21');
 });
 test('exponent number: backspace clears it and digits are ignored', () => {
-  const seq = '1000000000000*1000000000=';
+  const seq = '100000000000*10000000000='; // 1e11 × 1e10 = 1e21
   assert.strictEqual(expr(seq + '+B'), '1e21');
   assert.strictEqual(expr(seq + '+BB'), '');
   assert.strictEqual(expr(seq + '+B5'), '1e21');
@@ -115,16 +115,25 @@ test('exponent number: backspace clears it and digits are ignored', () => {
 test('overflow', () => {
   const c = new Calculator();
   run(BIG, c);
-  for (let i = 0; i < 20; i++) run('*' + BIG + '=', c);
+  for (let i = 0; i < 25; i++) run('*' + BIG + '=', c);
   assert.strictEqual(c.getDisplay().expression, 'Error: Result too large');
   assert.strictEqual(c.getDisplay().preview, '');
 
   const d = new Calculator();
   run(BIG, d);
-  for (let i = 0; i < 19; i++) run('*' + BIG + '=', d);
+  for (let i = 0; i < 24; i++) run('*' + BIG + '=', d);
   run('*' + BIG, d);
   assert.strictEqual(d.getDisplay().preview, '');
 });
 test('unknown keys are ignored', () => {
   assert.strictEqual(expr('2a+3'), '2+3');
+});
+test('continuing from a result keeps full precision', () => {
+  assert.strictEqual(expr('1/3=*3='), '1');
+  assert.strictEqual(expr('1/7=*7='), '1');
+  assert.strictEqual(prev('1/3=*3'), '1');
+});
+test('every typed digit survives display rounding', () => {
+  assert.strictEqual(expr('123456789012+0='), '123,456,789,012');
+  assert.strictEqual(expr('1.15-1.1='), '0.05');
 });

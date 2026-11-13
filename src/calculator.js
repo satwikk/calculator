@@ -3,7 +3,7 @@
 
 const OPERATORS = ['+', '-', '*', '/'];
 const OP_SYMBOL = { '+': '+', '-': '−', '*': '×', '/': '÷' };
-const MAX_DIGITS = 15;
+const MAX_DIGITS = 12; // matches the 12-digit display precision in format()
 
 class Calculator {
   constructor() {
@@ -54,7 +54,7 @@ class Calculator {
 
   _preview() {
     if (this.justEvaluated || !this._isComplete()) return '';
-    const value = Calculator.evaluate(this.tokens);
+    const value = Calculator.evaluate(this._exactTokens());
     if (value === null || !isFinite(value)) return '';
     return Calculator.group(Calculator.format(value));
   }
@@ -63,12 +63,21 @@ class Calculator {
     this.tokens = [];
     this.justEvaluated = false;
     this.error = null;
+    this.carry = null; // { text, value }: full-precision value behind a displayed result
+  }
+
+  // Tokens for evaluation, with an untouched previous result restored to full precision.
+  _exactTokens() {
+    const t = this.tokens.slice();
+    if (this.carry && t[0] === this.carry.text) t[0] = String(this.carry.value);
+    return t;
   }
 
   _startFreshIfEvaluated() {
     if (this.justEvaluated) {
       this.tokens = [];
       this.justEvaluated = false;
+      this.carry = null;
     }
   }
 
@@ -132,7 +141,7 @@ class Calculator {
 
   _equals() {
     if (this.justEvaluated || !this._isComplete()) return;
-    const value = Calculator.evaluate(this.tokens);
+    const value = Calculator.evaluate(this._exactTokens());
     if (value === null) {
       this.error = Calculator.ERROR_DIV_ZERO;
       return;
@@ -142,6 +151,7 @@ class Calculator {
       return;
     }
     this.tokens = [Calculator.format(value)];
+    this.carry = { text: this.tokens[0], value };
     this.justEvaluated = true;
   }
 
@@ -149,6 +159,7 @@ class Calculator {
     this.justEvaluated = false;
     const t = this.tokens;
     if (t.length === 0) return;
+    if (t.length === 1) this.carry = null; // the result itself is being edited
     const last = this._last();
     // Exponent-form numbers are cleared whole, never trimmed.
     const trimmed = this._endsInNumber() && last.includes('e') ? '' : last.slice(0, -1);
